@@ -18,8 +18,12 @@ int main(int argc, const char * argv[]) {
 
     // vars
     Mat* previousFrame = new Mat;
-    Mat* firstFrame = new Mat;
+    Mat* backgroundFrame = new Mat;
     Mat* frame = new Mat;
+    
+    int objects = 0;
+    int objectsBefore = 0;
+    vector<vector<int>> objectRect;
     
     int width = 320;
     int height = 180;
@@ -29,54 +33,43 @@ int main(int argc, const char * argv[]) {
     pMOG2 = createBackgroundSubtractorMOG2(); //MOG2 approach
     
     int fps = 25;
-    double wait = 1000.0/fps;
+    double wait = 100.0/fps;
     
-    for(int i = 0; i < 1; i++) {
-        VideoCapture* video = loadVideo(i);
-
+    for(int v = 1; v < 2; v++) {
+        VideoCapture* video = loadVideo(v);
+        
         Mat* movingStuff = new Mat(Size(width, height), CV_8U);
 
         while(video[0].isOpened()) {
             if(video[0].read(*frame) != false) {
-                resize(*frame, *frame, Size(width, height), 0, 0, INTER_CUBIC);
-                ////////////
+                
+                cvtColor(*frame, *frame, COLOR_BGR2GRAY);
+                resize(*frame, *frame, Size(width, height), 0, 0, INTER_LINEAR);
+                
                 Mat* blurredFrame = new Mat;
-                GaussianBlur(*frame, *blurredFrame, Size( 15, 15), 0, 0 );
+                GaussianBlur(*frame, *blurredFrame, Size( 5, 5), 1.5);
                 
                 unsigned int currentFrameNo = video[0].get(CAP_PROP_POS_FRAMES);
                 
                 if(currentFrameNo == 1) {
-                    *firstFrame = blurredFrame->clone();
+                    *backgroundFrame = blurredFrame->clone();
                 }
                 else {
+                    imshow("currentFrame", *blurredFrame);
+                    moveWindow("currentFrame", 0, backgroundFrame->rows + 50);
                     
-                    if(currentFrameNo == 450) {
-                        for(int r = 0; r < movingStuff->rows; r++) {
-                            for(int c = 0; c < movingStuff->cols; c++) {
-                                
-                                movingStuff->at<uchar>(r,c) =0;
-                                *firstFrame = blurredFrame->clone();
-                            }
-                        }
-                    }
-
-                    moveWindow("lastFrame", 0, 0);
+                    Mat* diff = new Mat;
                     
-                    imshow("currentFrame", *frame);
-                    moveWindow("currentFrame", 0, firstFrame->rows + 50);
-                    
-
-
+                    diff = differenceImage(blurredFrame, backgroundFrame);
+                    imshow("blur", *diff);
 
                     //update the background model
-                    pMOG2->apply(*blurredFrame, fgMaskMOG2, 0.0005);
+                    pMOG2->apply(*blurredFrame, fgMaskMOG2, 0.0001);
                     
                     Mat* threshImg = new Mat;
                     threshold(fgMaskMOG2, *threshImg, 150, 255, THRESH_BINARY);
                     
-                    
-                    
-                    if(currentFrameNo > 2 && currentFrameNo % 2 == 0) {
+                    if(currentFrameNo > 25 && currentFrameNo % 5 == 0) {
                         for(int r = 0; r < movingStuff->rows; r++) {
                             for(int c = 0; c < movingStuff->cols; c++) {
                                 
@@ -84,8 +77,8 @@ int main(int argc, const char * argv[]) {
                                     int currentPixlVal = movingStuff->at<uchar>(r,c);
                                     
                                     if(threshImg->at<uchar>(r,c) == previousFrame->at<uchar>(r,c)) {
-                                        if(currentPixlVal < 254) {
-                                            movingStuff->at<uchar>(r,c) +=2;
+                                        if(currentPixlVal < 245) {
+                                            movingStuff->at<uchar>(r,c) +=10;
                                         }
                                     }
                                 }
@@ -93,65 +86,70 @@ int main(int argc, const char * argv[]) {
                         }
                     }
                     
-                    
-                    imshow("lets see", *movingStuff);
-                    
                     Mat* threshIt = new Mat;
-                    threshold(*movingStuff, *threshIt, 130, 255, THRESH_BINARY);
+                    threshold(*movingStuff, *threshIt, 100, 255, THRESH_BINARY);
+                    imshow("letdass see", *threshIt);
                     
-                    imshow("lets asdsa", *threshIt);
+                    /********** dilate */
+                    Mat* dilated = new Mat;
+                    Mat structuring_element( 2, 3, CV_8U, Scalar(1) );
+                    dilate( *threshIt, *dilated, structuring_element);
                     
-
-                    ////////////////CONTOURS START
-                    vector<vector<Point> > contours;
-
-                    // find the contours
-                    findContours(*threshIt, contours, CV_RETR_LIST, CV_CHAIN_APPROX_NONE);
-
-                    vector<vector<Point> > contours_poly( contours.size() );
-                    vector<Point2f>center( contours.size() );
-                    vector<float>radius( contours.size() );
-
-                    for( int ii = 0; ii < contours.size(); ii++ ){
-                        approxPolyDP( Mat(contours[ii]), contours_poly[ii], 3, true );
-                        minEnclosingCircle( (Mat)contours_poly[ii], center[ii], radius[ii] );
-                    }
-
-                    
-                    Mat* newObjects = new Mat[center.size()];
-                    
-                    for(int i = 0; i < center.size(); i++) {
-                        if(radius[i] > 2) {
-                            circle(*frame, center[i], radius[i], Scalar(160, 0, 255));
+                    if(currentFrameNo > 2 && currentFrameNo % 15 == 0) {
+                        
+                        ////////////////CONTOURS START
+                        vector<vector<Point> > contours;
+                        
+                        // find the contours
+                        findContours(*dilated, contours, CV_RETR_LIST, CV_CHAIN_APPROX_NONE);
+                        
+                        vector<vector<Point> > contours_poly( contours.size() );
+                        vector<Point2f>center( contours.size() );
+                        vector<float>radius( contours.size() );
+                        
+                        for( int ii = 0; ii < contours.size(); ii++ ){
+                            approxPolyDP( Mat(contours[ii]), contours_poly[ii], 3, true );
+                            minEnclosingCircle( (Mat)contours_poly[ii], center[ii], radius[ii] );
                         }
                         
-                        moveWindow("threshIt", 500, 100);
-                        
-                        
-                        //////////////
-                        imshow("circles", *frame);
-                        
-                        Rect roi = Rect(center[i].x - 2* radius[i], center[i].y - 2* radius[i], 4*radius[i], 4*radius[i]);
+                        for(int i = 0; i < center.size(); i++) {
+                            Rect roi;
+                            
+                            objects = 0;
+                            objectRect.clear();
+      
+                            if(radius[i] > 5) {
+                                
+                                objects++;
+                                vector<int> xyw = {int(center[i].x), int(center[i].y), int(radius[i]) };
+                                objectRect.push_back(xyw);
+                                
+                                *previousFrame = threshImg->clone();
+                                *backgroundFrame = blurredFrame->clone();
+                                
+                                if(objectsBefore != objects){
+                                    objectsBefore = objects;
+                                }
+                                
+                                for(int r = 0; r < movingStuff->rows; r++) {
+                                    for(int c = 0; c < movingStuff->cols; c++) {
+                                        movingStuff->at<uchar>(r,c) = 0;
+                                    }
+                                }
 
+                            }
+                        }
                         
-                        Mat image = *frame;
-                        
-                        newObjects[i] = image(roi).clone();
-                        
-                       
-                        
-                        Mat* canny = new Mat;
-                        Canny(newObjects[i], *canny, 100, 255);
-                        
-                         imshow("asdas", *canny);
+                        *previousFrame = threshImg->clone();
                     }
                     
-                    *previousFrame = threshImg->clone();
-                    /////////////////////////
-
+                    for(int i = 0; i < objectRect.size(); i++) {
+                        circle(*frame, Point(objectRect[i][0], objectRect[i][1]), objectRect[i][2], Scalar(255, 255, 255));
+                    }
+                    
+                    putText(*frame, to_string(objects), Point(10, 30), FONT_HERSHEY_SIMPLEX, 1.0, CV_RGB(0,255,0), 2.0);
+                    imshow("objects", *frame);
                 }
-
-                
                 
                 /*** video controls ***/
                 int key = waitKey(wait);
