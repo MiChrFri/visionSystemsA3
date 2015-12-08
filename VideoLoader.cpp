@@ -18,7 +18,7 @@ using namespace cv;
 VideoCapture* loadVideo(int index) {
     // file location
     string fileLocation = constant::directory + "Input/";
-    string videoFiles[] = { "ObjectAbandonmentAndRemoval1.avi", "ObjectAbandonmentAndRemoval2.avi", "LeftBag.mpg" };
+    string videoFiles[] = { "ObjectAbandonmentAndRemoval1.avi", "ObjectAbandonmentAndRemoval2.avi"};
     
     VideoCapture* video = new VideoCapture[1];
     
