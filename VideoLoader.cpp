@@ -16,17 +16,23 @@ using namespace std;
 using namespace cv;
 
 VideoCapture* loadVideo(int index) {
-    // file location
-    string fileLocation = constant::directory + "Input/";
-    string videoFiles[] = { "ObjectAbandonmentAndRemoval1.avi", "ObjectAbandonmentAndRemoval2.avi"};
-    
+    // var
     VideoCapture* video = new VideoCapture[1];
     
+    // file location
+    string fileLocation = constant::directory + "Input/";
+    
+    // video files
+    string videoFiles[] = { "ObjectAbandonmentAndRemoval1.avi", "ObjectAbandonmentAndRemoval2.avi"};
+    
+    // set filename
     string filename(fileLocation);
     filename.append(videoFiles[index]);
     
+    // open video
     video[0].open(filename);
     
+    // if opening files
     if(!video[0].isOpened()) {
         cout << "Cannot open video file: " << filename << endl;
     }

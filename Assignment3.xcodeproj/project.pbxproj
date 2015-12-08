@@ -9,7 +9,6 @@
 /* Begin PBXBuildFile section */
 		4CDC02521C11A2E700277831 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4CDC02501C11A2E700277831 /* main.cpp */; };
 		4CDC025B1C11A49400277831 /* VideoLoader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4CDC02591C11A49400277831 /* VideoLoader.cpp */; };
-		4CF1FAC01C12FE5D002BA574 /* BgModel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4CF1FABE1C12FE5D002BA574 /* BgModel.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -30,8 +29,6 @@
 		4CDC02591C11A49400277831 /* VideoLoader.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = VideoLoader.cpp; sourceTree = SOURCE_ROOT; };
 		4CDC025A1C11A49400277831 /* VideoLoader.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = VideoLoader.hpp; sourceTree = SOURCE_ROOT; };
 		4CDC025D1C11A55500277831 /* Constants.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Constants.h; sourceTree = SOURCE_ROOT; };
-		4CF1FABE1C12FE5D002BA574 /* BgModel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = BgModel.cpp; sourceTree = SOURCE_ROOT; };
-		4CF1FABF1C12FE5D002BA574 /* BgModel.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = BgModel.hpp; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -65,7 +62,6 @@
 			isa = PBXGroup;
 			children = (
 				4CDC02501C11A2E700277831 /* main.cpp */,
-				4CDC025D1C11A55500277831 /* Constants.h */,
 				4CDC025C1C11A49E00277831 /* utils */,
 			);
 			name = Assignment3;
@@ -75,8 +71,7 @@
 		4CDC025C1C11A49E00277831 /* utils */ = {
 			isa = PBXGroup;
 			children = (
-				4CF1FABE1C12FE5D002BA574 /* BgModel.cpp */,
-				4CF1FABF1C12FE5D002BA574 /* BgModel.hpp */,
+				4CDC025D1C11A55500277831 /* Constants.h */,
 				4CDC02591C11A49400277831 /* VideoLoader.cpp */,
 				4CDC025A1C11A49400277831 /* VideoLoader.hpp */,
 			);
@@ -139,7 +134,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				4CF1FAC01C12FE5D002BA574 /* BgModel.cpp in Sources */,
 				4CDC025B1C11A49400277831 /* VideoLoader.cpp in Sources */,
 				4CDC02521C11A2E700277831 /* main.cpp in Sources */,
 			);
