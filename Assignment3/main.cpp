@@ -228,24 +228,6 @@ int main(int argc, const char * argv[]) {
         cout << endl;
     }
     
-    /* result
-     video 1
-     -------
-     precision:                 1
-     recall:                    1
-     drop difference time:      5
-     pickup difference time:    2
-     diceCoefficient:           0.232877
-     
-     video 2
-     -------
-     precision:                 1
-     recall:                    1
-     drop difference time:      0
-     pickup difference time:    3
-     diceCoefficient:           0.610644
-     */
-    
     cout << "press any key to end the programm" << endl;
     waitKey(0);
 
