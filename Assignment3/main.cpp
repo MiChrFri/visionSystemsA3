@@ -26,12 +26,16 @@ int groundTruthArea[2] = {
     abs(groundTruthRB[1].x - groundTruthTL[1].x) * abs(groundTruthRB[1].y - groundTruthTL[1].y)
 };
 
+//functions
+int getAvgPixelVal(Mat img);
+
 // main
 int main(int argc, const char * argv[]) {
 
     // vars
     Mat* previousFrame = new Mat;
     Mat* frame = new Mat;
+    Mat* firstFrame = new Mat;
     int objects = 0;
     vector<vector<Point>> objectRect;
     int width = 320;
@@ -67,8 +71,11 @@ int main(int argc, const char * argv[]) {
                 // get current frame number
                 unsigned int currentFrameNo = video[0].get(CAP_PROP_POS_FRAMES);
                 
-                // start on the 2nd frame
-                if (currentFrameNo > 0) {
+                if (currentFrameNo == 1) {
+
+                    *firstFrame = frame->clone();
+                }
+                else {
                     
                     // apply background subtractor image
                     bgSubtr->apply(*blurredFrame, mask, 0.0001);
@@ -97,6 +104,8 @@ int main(int argc, const char * argv[]) {
                         }
                     }
                     
+                     imshow("movi", *movingPixels);
+                    
                     // threshold image to get rid of lightgrey pixels
                     Mat* thresholdImg = new Mat;
                     threshold(*movingPixels, *thresholdImg, 100, 255, THRESH_BINARY);
@@ -105,6 +114,8 @@ int main(int argc, const char * argv[]) {
                     Mat* dilated = new Mat;
                     Mat structuring_element( 2, 3, CV_8U, Scalar(1) );
                     dilate( *thresholdImg, *dilated, structuring_element);
+                    
+                    imshow("thresh", *thresholdImg);
                     
                     // do every 17th frame
                     if(currentFrameNo % 17 == 0) {
@@ -136,12 +147,31 @@ int main(int argc, const char * argv[]) {
                                 
                                 // create vector of the upperleft and lowerright cornerpoints
                                 vector<Point> tlBr = {boundRect[i].tl(), boundRect[i].br()};
-                                
                                 // add the cornerpoints
                                 objectRect.push_back(tlBr);
                                 
                                 // set all pixelvalues back to black
                                 threshold(*movingPixels, *movingPixels, 0, 0, THRESH_BINARY);
+                                
+                                imshow("moving", *movingPixels);
+                                
+                                // find out if object is abandonment or removed
+                                int x = boundRect[i].tl().x;
+                                int y = boundRect[i].tl().y;
+                                int xMax = boundRect[i].br().x;
+                                int yMax = boundRect[i].br().y;
+                                
+                                Rect myROI1(x, y, xMax-x, yMax-y);
+                                Mat tmpImgFG = *frame;
+                                tmpImgFG = tmpImgFG(myROI1);
+                                int avgValue1 = getAvgPixelVal(tmpImgFG);
+                                
+                                Rect myROI2(x-5, y-5, xMax-x+5, yMax-y+5);
+                                Mat tmpImgBG = *firstFrame;
+                                tmpImgBG = tmpImgBG(myROI2);
+                                int avgValue2 = getAvgPixelVal(tmpImgBG);
+
+                                cout << ( abs(avgValue1 - avgValue2) > 10 ? "abandoned\n" : "removal\n");
                             }
                         }
                         
@@ -232,5 +262,39 @@ int main(int argc, const char * argv[]) {
     waitKey(0);
 
     return 0;
+}
+
+
+/* get the histogram for an image */
+MatND getHistogram(Mat image) {
+    MatND histogram;
+    int channelNumbers[] = {0, 1, 2};
+    int* numberBins     = new int[image.channels()];
+    
+    for (int i = 0; i < image.channels(); i++) {
+        numberBins[i]       = 4.0;
+    }
+    
+    float channelRange[]            = {0.0, 255.0};
+    const float* channelRanges[]    = {channelRange, channelRange, channelRange};
+    
+    calcHist( &image, 1, channelNumbers, Mat(), histogram, image.channels(), numberBins, channelRanges );
+
+    return histogram;
+}
+
+int getAvgPixelVal(Mat img) {
+    
+    unsigned int counter = 0;
+    
+    for(int r = 0; r < img.rows; r++) {
+        for(int c = 0; c < img.cols; c++) {
+            counter += img.at<uchar>(r,c);
+        }
+    }
+    
+    int avg = round(counter/(img.rows*img.cols));
+    
+    return avg;
 }
 
